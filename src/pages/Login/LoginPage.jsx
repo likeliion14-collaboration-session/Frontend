@@ -1,85 +1,76 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
+import profile_icon from "../../assets/images/icons/profile_icon.svg";
 
 function LoginPage({ onLoginSubmit }) {
   const [userId, setUserId] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  // 모바일 브라우저 창 크기 변화로 키보드가 올라왔는지 감지하는 로직
+  // 모바일 키보드 감지 로직
   useEffect(() => {
     const handleResize = () => {
-      // 처음 켰을 때의 화면 높이보다 100px 이상 줄어들면 키보드가 켜진 것으로 판단
       if (window.innerHeight < 550) {
         setIsKeyboardVisible(true);
       } else {
         setIsKeyboardVisible(false);
       }
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // form 제출 시 페이지 새로고침 방지
+    e.preventDefault();
     if (userId.trim()) {
-      // App.jsx에서 내려준 백엔드 연동 함수 실행
       onLoginSubmit(userId.trim());
     } else {
       alert("사용할 아이디를 입력해주세요.");
     }
   };
 
-  // 인풋 클릭 시(포커스)와 모바일 키보드가 올라왔을 때 모두 "사라짐" 상태로 트리거
   const isHideState = isInputFocused || isKeyboardVisible;
 
   return (
     <LoginContainer>
-      {/* 1. 상단 상태바 디자인 (디자인 참고용 고정값) */}
-      <Header>
-        <Time>8:04</Time>
-        <StatusIcons>
-          <span>5G</span>
-          <span>80</span>
-        </StatusIcons>
-      </Header>
-
-      {/* 2. 메인 콘텐츠 (포커스 시 위로 슥 올라감) */}
+      {/* 2. 메인 콘텐츠 컨테이너 (키보드 활성화 시 위로 이동) */}
       <MainContent isFocused={isHideState} onSubmit={handleSubmit}>
-        {/* 프로필 이미지 영역 */}
-        <ProfileCircle>
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="#D9D9D9">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>
-        </ProfileCircle>
+        {/* 🌟 디자인의 핵심: 프로필 원과 흰색 카드 박스를 감싸는 그룹 */}
+        <CardGroup>
+          {/* 프로필 이미지가 카드 상단 정중앙 경계선에 걸치도록 배치 */}
+          <ProfileCircle>
+            <ProfileIconImage src={profile_icon} alt="프로필 아이콘" />
+          </ProfileCircle>
 
-        {/* 아이디 입력 박스 */}
-        <InputBox isFocused={isInputFocused}>
-          <InputField
-            type="text"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
-            placeholder={isInputFocused ? "" : "아이디"}
-          />
-        </InputBox>
+          {/* 모든 입력 요소들이 들어가는 거대한 흰색 박스 카드 */}
+          <WhiteCard>
+            <InputBox isFocused={isInputFocused}>
+              <InputField
+                type="text"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                placeholder={isInputFocused ? "" : "아이디"}
+              />
+            </InputBox>
+          </WhiteCard>
 
-        {/* 웰컴 문구 (포커스 시 부드럽게 사라짐) */}
-        <WelcomeText isHidden={isHideState}>
-          walkord 에 오신것을 환영합니다
-          <br />
-          사용할 아이디와 프로필을 입력해주세요
-        </WelcomeText>
+          {/* 웰컴 문구 */}
+          <WelcomeText isHidden={isHideState}>
+            walkord 에 오신것을 환영합니다
+            <br />
+            사용할 아이디와 프로필을 입력해주세요
+          </WelcomeText>
 
-        {/* 등록 버튼 (포커스 시 부드럽게 나타남) */}
-        <SubmitButton isVisible={isHideState} type="submit">
-          등록
-        </SubmitButton>
+          {/* 등록 버튼 */}
+          <SubmitButton isVisible={isHideState} type="submit">
+            등록
+          </SubmitButton>
+        </CardGroup>
       </MainContent>
 
-      {/* 3. 하단 로고 (포커스 시 부드럽게 사라짐) */}
+      {/* 3. 하단 로고 */}
       <Footer isHidden={isHideState}>
         <LogoText>walk:rd</LogoText>
       </Footer>
@@ -92,26 +83,16 @@ function LoginPage({ onLoginSubmit }) {
 const LoginContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100%;
   background-color: #ffffff;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
-`;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 24px;
-  font-size: 14px;
-  font-weight: bold;
-`;
-
-const Time = styled.span``;
-const StatusIcons = styled.div`
-  display: flex;
-  gap: 6px;
+  width: 100%;
+  max-width: 430px;
+  height: 100dvh;
+  border-radius: 24px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.12);
 `;
 
 const MainContent = styled.form`
@@ -122,32 +103,71 @@ const MainContent = styled.form`
   justify-content: center;
   padding: 20px;
   transition: transform 0.3s ease-in-out;
-  /* 인풋 창을 누르면 전체 콘텐츠를 위로 80px 올림 (키보드에 가려지지 않게) */
+  /* 포커스 시 전체 카드 묶음을 위로 슬라이딩 */
   transform: ${(props) =>
-    props.isFocused ? "translateY(-60px)" : "translateY(0)"};
+    props.isFocused ? "translateY(-100px)" : "translateY(0)"};
 `;
 
+/* 🌟 프로필과 카드를 하나로 묶어 기준점으로 삼는 컴포넌트 */
+const CardGroup = styled.div`
+  position: relative;
+  width: 90%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 60px; /* 프로필 원이 튀어나올 공간 확보 */
+`;
+
+/* 🌟 거대한 흰색 박스 카드 */
+const WhiteCard = styled.div`
+  width: 100%;
+
+  background-color: #9a9a9a;
+  border-radius: 24px;
+  padding: 60px 24px 32px 24px; /* 상단 패딩을 크게 주어 프로필 원 영역 확보 */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* 부드러운 그림자 효과 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+`;
+
+/* 🌟 상단 경계선에 걸치게 배치하는 프로필 원 */
 const ProfileCircle = styled.div`
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%); /* 정확히 y축 기준으로 반만 위로 튀어나오게 함 */
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  background-color: #ffe3e3; /* 피그마에 나온 연분홍색 톤 */
+  background-color: #ffffff;
+  border: 5px solid #ffffff; /* 카드 배경과 자연스럽게 이어지도록 흰색 테두리 추가 */
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 24px;
+  z-index: 2; /* 카드보다 무조건 위에 오도록 설정 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+`;
+
+const ProfileIconImage = styled.img`
+  width: 100%; /* 박스 크기의 절반 정도로 이쁘게 맞춤 (디자인에 따라 60% 등으로 조절 가능) */
+  height: auto;
+  object-fit: cover;
 `;
 
 const InputBox = styled.div`
-  width: 85%;
-  max-width: 320px;
-  background-color: #efefef; /* 피그마 회색 박스 */
-  border-radius: 12px;
-  padding: 16px;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
   transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
   border: 1px solid ${(props) => (props.isFocused ? "#FF8E8E" : "transparent")};
 `;
 
@@ -161,48 +181,47 @@ const InputField = styled.input`
   outline: none;
 
   &::placeholder {
-    color: #a9a9a9;
+    color: #adb5bd;
     font-weight: normal;
   }
 `;
 
 const WelcomeText = styled.p`
-  font-size: 14px;
-  color: #8e8e8e;
+  font-size: 13px;
+  color: #868e96;
   text-align: center;
   line-height: 1.6;
-  margin-top: 32px;
+  margin-top: 24px;
+  margin-bottom: 0;
   transition:
     opacity 0.2s ease-in-out,
     visibility 0.2s;
 
-  /* 숨김 상태일 때 투명하게 만들고 클릭 안 되게 막음 */
   opacity: ${(props) => (props.isHidden ? 0 : 1)};
   visibility: ${(props) => (props.isHidden ? "hidden" : "visible")};
 `;
 
 const SubmitButton = styled.button`
-  width: 100px;
-  padding: 12px 0;
-  background-color: white;
-  color: #ff8e8e;
-  border: 1px solid #ff8e8e;
-  border-radius: 20px;
+  width: 100%;
+  padding: 14px 0;
+  background-color: #ff8e8e;
+  color: white;
+  border: none;
+  border-radius: 14px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(255, 142, 142, 0.3);
   transition: all 0.2s ease-in-out;
 
-  /* 숨김 상태일 때는 투명하고 아래에 배치, 활성화되면 나타남 */
   opacity: ${(props) => (props.isVisible ? 1 : 0)};
   visibility: ${(props) => (props.isVisible ? "visible" : "hidden")};
   transform: ${(props) =>
     props.isVisible ? "translateY(0)" : "translateY(10px)"};
 
-  &:hover {
-    background-color: #ff8e8e;
-    color: white;
+  &:active {
+    transform: scale(0.98);
   }
 `;
 
@@ -223,7 +242,7 @@ const Footer = styled.div`
 const LogoText = styled.span`
   font-size: 24px;
   font-weight: 900;
-  color: #ff8e8e; /* 하단 로고 색상 */
+  color: #ff8e8e;
   letter-spacing: -1px;
 `;
 
