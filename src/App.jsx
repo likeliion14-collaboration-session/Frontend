@@ -1,10 +1,20 @@
-import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import RootLayout from "./layouts/RootLayout";
+
+import Main from "./pages/Main/Main";
+import PhotoUpload from "./pages/PhotoUpload/PhotoUpload";
 
 function App() {
   return (
-    <div className="app">
-      <h1>Walkord</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<RootLayout />}>
+          <Route path="/" element={<Main />} />
+          <Route path="/photo-upload" element={<PhotoUpload />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

@@ -1,17 +1,28 @@
-import { Outlet } from "react-router-dom";
-import Header from "../common/Header/Header";
-import Footer from "../common/footer/Footer";
+import { Outlet, useLocation } from "react-router-dom";
+import styled from "styled-components";
+
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
 
 export default function RootLayout() {
+  const location = useLocation();
+
+  const hideFooter = location.pathname === "/photo-upload";
+
   return (
     <>
       <Header />
 
-      <main>
+      <Main $hideFooter={hideFooter}>
         <Outlet />
-      </main>
+      </Main>
 
-      <Footer />
+      {!hideFooter && <Footer />}
     </>
   );
 }
+
+const Main = styled.main`
+  padding-top: 52px;
+  padding-bottom: ${({ $hideFooter }) => ($hideFooter ? "0px" : "72px")};
+`;
