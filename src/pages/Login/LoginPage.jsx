@@ -19,12 +19,9 @@ function LoginPage({ onLoginSubmit }) {
   // 모바일 키보드 감지 로직
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerHeight < 550) {
-        setIsKeyboardVisible(true);
-      } else {
-        setIsKeyboardVisible(false);
-      }
+      setIsKeyboardVisible(window.innerHeight < 550);
     };
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -63,9 +60,12 @@ function LoginPage({ onLoginSubmit }) {
     } finally {
       setIsLoading(false);
     }
+
+    onLoginSubmit?.(userId.trim());
   };
 
   const isHideState = isInputFocused || isKeyboardVisible;
+  const isButtonVisible = userId.trim().length > 0;
 
   return (
     <LoginContainer>
@@ -74,10 +74,9 @@ function LoginPage({ onLoginSubmit }) {
         <CardGroup>
           {/* 프로필 이미지 */}
           <ProfileCircle>
-            <ProfileIconImage src={profile_icon} alt="프로필 아이콘" />
+            <ProfileIconImage src={profile_icon} alt="프로필" />
           </ProfileCircle>
 
-          {/* 거대한 흰색 박스 카드 */}
           <WhiteCard>
             <InputBox isFocused={isInputFocused}>
               <InputField
@@ -92,11 +91,10 @@ function LoginPage({ onLoginSubmit }) {
             </InputBox>
           </WhiteCard>
 
-          {/* 웰컴 문구 */}
           <WelcomeText isHidden={isHideState}>
-            walkord 에 오신것을 환영합니다
+            walkord 에 오신 것을 환영합니다.
             <br />
-            사용할 아이디와 프로필을 입력해주세요
+            사용할 아이디와 프로필을 입력해주세요.
           </WelcomeText>
 
           {/* 등록 버튼 */}
@@ -118,29 +116,25 @@ function LoginPage({ onLoginSubmit }) {
   );
 }
 
-// --- 💅 Styled Components ---
+export default LoginPage;
 
 const LoginContainer = styled.div`
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
 
   width: 100%;
-  max-width: 430px;
   height: 100dvh;
-  border-radius: 24px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.12);
+  background: #fff;
 `;
 
 const MainContent = styled.form`
   flex: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   padding: 20px;
   transition: transform 0.3s ease-in-out;
   transform: ${(props) =>
@@ -148,12 +142,14 @@ const MainContent = styled.form`
 `;
 
 const CardGroup = styled.div`
-  position: relative;
   width: 90%;
   max-width: 340px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  position: relative;
   margin-top: 60px;
 `;
 
@@ -166,7 +162,8 @@ const WhiteCard = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 `;
 
 const ProfileCircle = styled.div`
@@ -175,6 +172,7 @@ const ProfileCircle = styled.div`
   transform: translateY(-50%);
   width: 110px;
   height: 110px;
+
   border-radius: 50%;
   background-color: #ffffff;
   border: 5px solid #ffffff;
@@ -184,6 +182,10 @@ const ProfileCircle = styled.div`
   z-index: 2;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+
+  z-index: 2;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 `;
 
 const ProfileIconImage = styled.img`
@@ -194,26 +196,34 @@ const ProfileIconImage = styled.img`
 
 const InputBox = styled.div`
   width: 100%;
-  background-color: #ffffff;
-  border-radius: 14px;
+
   padding: 14px;
   margin-top: 15px;
+
+  border-radius: 14px;
+
+  background: white;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: all 0.2s ease-in-out;
-  box-sizing: border-box;
-  border: 1px solid ${(props) => (props.isFocused ? "#FF8E8E" : "transparent")};
+
+  border: 1px solid
+    ${({ isFocused }) => (isFocused ? "#FF8E8E" : "transparent")};
+
+  transition: 0.2s;
 `;
 
 const InputField = styled.input`
   width: 100%;
+
   border: none;
+  outline: none;
   background: transparent;
+
   font-size: 18px;
   font-weight: bold;
   text-align: center;
-  outline: none;
 
   &::placeholder {
     color: #adb5bd;
@@ -222,32 +232,32 @@ const InputField = styled.input`
 `;
 
 const WelcomeText = styled.p`
-  font-size: 13px;
-  color: #868e96;
+  margin-top: 24px;
+
   text-align: center;
   line-height: 1.6;
-  margin-top: 24px;
-  margin-bottom: 0;
-  transition:
-    opacity 0.2s ease-in-out,
-    visibility 0.2s;
+  font-size: 13px;
+  color: #868e96;
 
-  opacity: ${(props) => (props.isHidden ? 0 : 1)};
-  visibility: ${(props) => (props.isHidden ? "hidden" : "visible")};
+  opacity: ${({ isHidden }) => (isHidden ? 0 : 1)};
+  visibility: ${({ isHidden }) => (isHidden ? "hidden" : "visible")};
+
+  transition: 0.2s;
 `;
 
 const Footer = styled.div`
   position: absolute;
   bottom: 30px;
+
   width: 100%;
+
   display: flex;
   justify-content: center;
-  transition:
-    opacity 0.2s ease-in-out,
-    visibility 0.2s;
 
-  opacity: ${(props) => (props.isHidden ? 0 : 1)};
-  visibility: ${(props) => (props.isHidden ? "hidden" : "visible")};
+  opacity: ${({ isHidden }) => (isHidden ? 0 : 1)};
+  visibility: ${({ isHidden }) => (isHidden ? "hidden" : "visible")};
+
+  transition: 0.2s;
 `;
 
 const LogoText = styled.span`
@@ -256,5 +266,3 @@ const LogoText = styled.span`
   color: #ff8e8e;
   letter-spacing: -1px;
 `;
-
-export default LoginPage;
