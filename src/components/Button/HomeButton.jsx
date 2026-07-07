@@ -25,7 +25,7 @@ const StyledButton = styled.button`
 
   cursor: pointer;
 
-  box-shadow: 0 0 5px rgba(110, 0, 0, 0.5);
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 
   transition: 0.2s;
 `;
