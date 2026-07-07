@@ -1,48 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // 💡 useEffect 추가
 
-// 예시 데이터: 나중에 백엔드 API 성공 시 구조에 맞게 대체하시면 됩니다.
-const DUMMY_USER_IMAGES = [
-  {
-    id: 1,
-    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
-  },
-  {
-    id: 2,
-    url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-  },
-  {
-    id: 3,
-    url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
-  },
-  {
-    id: 4,
-    url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400",
-  },
-  {
-    id: 5,
-    url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400",
-  },
-  {
-    id: 6,
-    url: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400",
-  },
-];
+const BASE_URL = "https://api.chungs.store";
 
 export default function PhotoSelection() {
-  const [userImages, setUserImages] = useState(DUMMY_USER_IMAGES); // 유저 사진 목록
+  const [userImages, setUserImages] = useState([]); // 백엔드에서 받아올 공간 (빈 배열 시작)
   const [selectedIds, setSelectedIds] = useState([]); // 선택된 사진 ID 배열
+  const [isLoading, setIsLoading] = useState(true); // API 로딩 상태 관리
 
-  // [백엔드 API 연동 예시]
-  /*
+  // 1️⃣ [GET] 카드 후보 사진 목록 조회 API 연결
   useEffect(() => {
-    fetch('/api/user/photos')
-      .then(res => res.json())
-      .then(data => setUserImages(data))
-      .catch(err => console.error(err));
-  }, []);
-  */
+    const getCandidateImages = async () => {
+      try {
+        // 임시로 userId를 1로 설정했습니다. 실제 프로젝트의 로그인 세션이나 전역 상태의 id를 사용하세요.
+        const userId = 1;
+        const until = new Date().toISOString();
 
-  // 사진 클릭 토글 핸들러
+        const response = await fetch(
+          `${BASE_URL}/card/candidates?userId=${userId}&until=${until}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("사진 목록을 불러오지 못했습니다.");
+        }
+
+        const data = await response.json();
+
+        // 💡 만약 Swagger 응답 배열의 이미지 경로 키가 'url'이 아니라 'imageUrl'이나 'photoPath'라면
+        // 하단 렌더링 영역의 img.imageUrl도 그 명칭에 맞춰 변경해 주어야 합니다.
+        setUserImages(data);
+      } catch (error) {
+        console.error("사진 조회 실패:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getCandidateImages();
+  }, []);
+
+  // 2️⃣ 사진 클릭 토글 핸들러 (그대로 유지)
   const handleImageClick = (id) => {
     setSelectedIds((prevIds) => {
       // 이미 선택되어 있다면 제거
@@ -61,22 +63,50 @@ export default function PhotoSelection() {
     });
   };
 
-  // 최종 등록 핸들러
-  const handleRegister = () => {
+  // 3️⃣ [POST] 카드 확정 발급 (2단계) API 연결
+  const handleRegister = async () => {
     if (selectedIds.length === 0) {
       alert("최소 1개 이상의 사진을 선정해주세요.");
       return;
     }
 
-    // 백엔드로 전송할 최종 선택된 이미지 객체들
-    const selectedImages = userImages.filter((img) =>
-      selectedIds.includes(img.id),
-    );
-    console.log("공유 페이지로 보낼 MVP 사진 정보:", selectedImages);
-    alert(`${selectedIds.length}개의 사진이 등록되었습니다!`);
+    try {
+      // 💡 Swagger 'Request body' 스키마를 열어보고 key 값 구조를 일치시키세요.
+      // 만약 껍데기 없는 단순 배열([1, 2, 3]) 형태를 원한다면 body에 바로 selectedIds를 넣어야 합니다.
+      const requestBody = {
+        photoIds: selectedIds,
+      };
 
-    // 이후 라우터를 통해 공유 결과 페이지로 이동 처리 (예: navigate('/share', { state: { selectedImages } }))
+      const response = await fetch(`${BASE_URL}/card`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error("카드 발급에 실패했습니다.");
+      }
+
+      const result = await response.json();
+      alert("카드가 성공적으로 확정 발급되었습니다!");
+
+      // 성공 후 결과 페이지 이동 로직 작성 구역
+    } catch (error) {
+      console.error("카드 발급 실패:", error);
+      alert("등록 중 에러가 발생했습니다.");
+    }
   };
+
+  // API 로딩 중 일 때 보여줄 화면
+  if (isLoading) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "100px", color: "#555" }}>
+        로딩 중...
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -90,21 +120,38 @@ export default function PhotoSelection() {
       {/* 스크롤 가능한 메인 사진 그리드 영역 */}
       <div style={styles.gridArea}>
         <div style={styles.imageGrid}>
-          {userImages.map((img) => {
-            const isSelected = selectedIds.includes(img.id);
-            return (
-              <div
-                key={img.id}
-                onClick={() => handleImageClick(img.id)}
-                style={{
-                  ...styles.imageWrapper,
-                  ...(isSelected ? styles.imageSelected : {}),
-                }}
-              >
-                <img src={img.url} alt="User Upload" style={styles.photo} />
-              </div>
-            );
-          })}
+          {userImages.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                width: "100%",
+                color: "#999",
+                padding: "40px 0",
+              }}
+            >
+              선택 가능한 사진 후보가 없습니다.
+            </div>
+          ) : (
+            userImages.map((img) => {
+              const isSelected = selectedIds.includes(img.id);
+              return (
+                <div
+                  key={img.id}
+                  onClick={() => handleImageClick(img.id)}
+                  style={{
+                    ...styles.imageWrapper,
+                    ...(isSelected ? styles.imageSelected : {}),
+                  }}
+                >
+                  <img
+                    src={img.imageUrl}
+                    alt="User Upload"
+                    style={styles.photo}
+                  />
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -122,7 +169,6 @@ export default function PhotoSelection() {
   );
 }
 
-// UI 흐름 이미지 분석을 기반으로 최적화한 스타일 오브젝트
 const styles = {
   container: {
     width: "360px",
@@ -155,11 +201,11 @@ const styles = {
     flex: 1,
     overflowY: "auto",
     padding: "12px",
-    paddingBottom: "180px", // 하단 고정 카드 영역에 가려지지 않도록 패딩 부여
+    paddingBottom: "240px", // 💡 하단 카드 높이가 넓어진 만큼 스크롤 여백 확대
     backgroundColor: "#fff",
   },
   imageGrid: {
-    display: "table", // flex/grid 대안으로 안정적인 격자 구조 표현
+    display: "table",
     width: "100%",
     borderCollapse: "separate",
     borderSpacing: "8px",
@@ -171,13 +217,13 @@ const styles = {
     borderRadius: "12px",
     overflow: "hidden",
     boxSizing: "border-box",
-    border: "3px solid transparent", // 기본 상태 격자 흔들림 방지
+    border: "3px solid transparent",
     cursor: "pointer",
     margin: "4px",
     transition: "all 0.2s ease",
   },
   imageSelected: {
-    border: "3px solid #ff8a93", // 선택됐을 때 강조되는 피치/핑크 테두리
+    border: "3px solid #ff8a93",
     boxShadow: "0 0 8px rgba(255,138,147,0.4)",
   },
   photo: {
@@ -185,30 +231,27 @@ const styles = {
     height: "100%",
     objectFit: "cover",
   },
-  // 요청사항: "하단바 뒤에 그라데이션 들어갑니다" 구현 영역
   bottomOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: "220px",
-    // 하단 투명에서 은은한 피치-화이트톤으로 올라오는 그라데이션 설정
-
+    height: "280px", // 💡 그라데이션이 더 위로 보이기 위해 전체 영역 확보 높이 업그레이드
     background:
-      "linear-gradient(to top, rgba(255,235,235,1) 60%, rgba(255,255,255,1) 100%)",
+      "linear-gradient(to top, rgba(255,235,235,1) 40%, rgba(255,255,255,1) 70%, rgba(255,255,255,0) 100%)", // 💡 위로 갈수록 투명해지는 그라데이션 비율 조율
     display: "flex",
     alignItems: "flex-end",
     justifyContent: "center",
-    pointerEvents: "none", // 뒤에 있는 스크롤을 방해하지 않되 내부 카드는 클릭 가능하도록 분리 가능
+    pointerEvents: "none",
   },
   whiteCard: {
     width: "100%",
     backgroundColor: "#fff",
-    borderRadius: "50px 50px 0 0", // 요구 서류의 부드러운 둥근 돔 모양 구현
+    borderRadius: "50px 50px 0 0",
     boxShadow: "0 -4px 16px rgba(0,0,0,0.06)",
-    padding: "20px 16px 12px 16px",
+    padding: "24px 16px 20px 16px",
     textAlign: "center",
-    pointerEvents: "auto", // 카드 내부 요소는 클릭 가능하게 제어
+    pointerEvents: "auto",
   },
   cardTitle: {
     fontSize: "13px",
