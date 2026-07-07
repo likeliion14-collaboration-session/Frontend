@@ -6,17 +6,14 @@ import { login } from "../../api/user";
 import { useNavigate } from "react-router-dom";
 import CommonButton from "../../components/Button/CommonButton";
 
-function LoginPage({ onLoginSubmit }) {
+function LoginPage() {
   const [userId, setUserId] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  // 2. 🌟 에러 원인 해결: 로딩 상태 선언 추가!
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 모바일 키보드 감지 로직
   useEffect(() => {
     const handleResize = () => {
       setIsKeyboardVisible(window.innerHeight < 550);
@@ -30,38 +27,30 @@ function LoginPage({ onLoginSubmit }) {
     e.preventDefault();
 
     const trimmedId = userId.trim();
+
     if (!trimmedId) {
       alert("사용할 아이디를 입력해주세요.");
       return;
     }
 
     try {
-      setIsLoading(true); // 이제 정상적으로 작동합니다.
+      setIsLoading(true);
 
-      // 서버 사양(multipart/form-data)에 맞게 FormData 객체 생성
       const formData = new FormData();
       formData.append("nickname", trimmedId);
 
-      // API 요청 전송
       const response = await login(formData);
 
-      console.log("로그인 성공 응답:", response.data);
+      console.log("로그인 성공", response.data);
 
-      if (onLoginSubmit) {
-        onLoginSubmit(trimmedId, response.data.data);
-      }
-
-      navigate("../src/pages/Home/MainPage.jsx");
+      navigate("/main");
     } catch (error) {
-      console.error("로그인 통신 에러:", error);
-      const errorMessage =
-        error.response?.data?.message || "로그인 중 오류가 발생했습니다.";
-      alert(errorMessage);
+      console.error(error);
+
+      alert(error.response?.data?.message ?? "로그인 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
-
-    onLoginSubmit?.(userId.trim());
   };
 
   const isHideState = isInputFocused || isKeyboardVisible;
@@ -98,13 +87,11 @@ function LoginPage({ onLoginSubmit }) {
           </WelcomeText>
 
           {/* 등록 버튼 */}
-          <CommonButton
-            isVisible={isHideState}
-            type="submit"
-            disabled={isLoading} // 4. 로딩 중에는 버튼 클릭 방지
-          >
-            {isLoading ? "등록 중..." : "등록"}
-          </CommonButton>
+          {isButtonVisible && (
+            <CommonButton type="submit" disabled={isLoading}>
+              {isLoading ? "등록 중..." : "등록"}
+            </CommonButton>
+          )}
         </CardGroup>
       </MainContent>
 
