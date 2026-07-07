@@ -19,21 +19,20 @@ export default function Header() {
 }
 
 const Container = styled.header`
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  z-index: 1000;
 
   width: 100%;
-  height: 52px;
+  height: 89px;
 
-  background: white;
+  background: #fff;
+  z-index: 200;
+  border-bottom: 0.5px solid #a8a7a7;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 `;
 
 const BackButton = styled.button`

@@ -1,32 +1,36 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-<<<<<<< HEAD
+import styled from "styled-components";
 
-import RootLayout from "./layouts/RootLayout";
-
-import Main from "./pages/Main/Main";
-import PhotoUpload from "./pages/PhotoUpload/PhotoUpload";
-=======
+import RootLayout from "./layout/RootLayout.jsx";
+import PhotoUpload from "./pages/Photo/PhotoUpload.jsx";
 import LoginPage from "./pages/Login/LoginPage.jsx";
-import RootLayout from "../src/layout/RootLayout.jsx";
-import MainPage from "../src/pages/Home/MainPage.jsx";
->>>>>>> cf1bf91a418b5cc950346354302e1244e7ccc392
+import MainPage from "./pages/Home/MainPage.jsx";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<RootLayout />}>
-<<<<<<< HEAD
-          <Route path="/" element={<Main />} />
-          <Route path="/photo-upload" element={<PhotoUpload />} />
-=======
-          <Route path="/" element={<MainPage />} />
-          <Route path="/login" element={<LoginPage />} />
->>>>>>> cf1bf91a418b5cc950346354302e1244e7ccc392
-        </Route>
-      </Routes>
+      <AppFrame>
+        <Routes>
+          <Route element={<RootLayout />}>
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/main" element={<MainPage />} />
+            <Route path="/photo-upload" element={<PhotoUpload />} />
+          </Route>
+        </Routes>
+      </AppFrame>
     </BrowserRouter>
   );
 }
 
 export default App;
+
+const AppFrame = styled.div`
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #fff;
+  position: relative;
+  overflow-x: hidden;
+`;
